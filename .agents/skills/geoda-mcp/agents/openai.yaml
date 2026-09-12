@@ -1,0 +1,11 @@
+interface:
+  display_name: "GeoDa"
+  short_description: "Install, launch, and connect GeoDa over MCP"
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "geoda"
+      description: "GeoDa local MCP server - spatial weights, LISA, clustering, regression, maps"
+      transport: "streamable_http"
+      url: "http://127.0.0.1:8765/mcp"

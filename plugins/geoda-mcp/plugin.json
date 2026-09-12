@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "geoda-mcp",
+  "version": "0.1.0",
+  "description": "Install, launch, and connect GeoDa so this agent can run spatial analysis with it (spatial weights, LISA, clustering, regression, maps) over MCP.",
+  "author": {
+    "name": "GeoDa Center",
+    "url": "https://github.com/GeoDaCenter"
+  },
+  "repository": "https://github.com/GeoDaCenter/geoda-skill"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "geoda-skill",
+  "owner": {
+    "name": "GeoDa Center",
+    "url": "https://github.com/GeoDaCenter"
+  },
+  "description": "Bootstrap skill and MCP connection for GeoDa.",
+  "plugins": [
+    {
+      "name": "geoda-mcp",
+      "source": "./plugins/geoda-mcp",
+      "description": "Install, launch, and connect GeoDa so this agent can run spatial analysis with it (spatial weights, LISA, clustering, regression, maps) over MCP."
+    }
+  ]
+}

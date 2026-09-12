@@ -1,0 +1,201 @@
+---
+name: geoda-mcp
+description: Set up and connect to GeoDa's built-in MCP server so this agent can run spatial analysis in GeoDa (spatial weights, global and local spatial autocorrelation / LISA, spatial clustering, regression, maps) over MCP. Use when the user asks to run spatial autocorrelation, LISA, Moran's I, or spatial clustering "in GeoDa" / "with GeoDa", or when the geoda MCP tools are not yet available in this session.
+---
+
+# GeoDa MCP bootstrap
+
+GeoDa is a desktop app for spatial data analysis — spatial weights, global and
+local spatial autocorrelation, LISA cluster maps, spatial clustering, regression.
+It hosts a **built-in MCP server** that starts with the app, binding
+`http://127.0.0.1:8765/mcp` and recording the port it actually bound in
+`~/.geoda/mcp.json`. Once connected, this agent drives GeoDa's analysis tools
+directly and the maps and plots render in the app window.
+
+This skill downloads, installs, launches, and registers that app. It is
+**idempotent** — run the first step and skip ahead if the tools are already
+available.
+
+> The MCP server ships on the `feat-mcp-server` line (PR #2586) and is not in a
+> public release yet, so Step 1 pulls the build from CI.
+
+## Step 0 — Are we already connected?
+
+If this session already exposes GeoDa's MCP tools (`project/status`, `file/open`,
+`table/list_columns`, `weights/create`, `global/moran`, `lisa/local_moran`,
+`cluster/skater`, `window/create_map`, …), setup is done: **skip to Step 5** and
+answer the original request.
+
+Check from the CLI too:
+
+```bash
+claude mcp list
+```
+
+If `geoda` is listed and connected, skip to Step 5. If it is listed but
+disconnected, the app is not running — continue at Step 3.
+
+## Step 1 — Get the MCP-enabled build
+
+macOS only for now (the CI workflow publishes macOS `.dmg`s). Two routes, in
+order:
+
+**A. A published build** — if `GEODA_DMG_URL` is set, use it (no auth needed):
+
+```bash
+if [ -n "${GEODA_DMG_URL:-}" ]; then
+  curl -fL "$GEODA_DMG_URL" -o /tmp/GeoDa.dmg
+fi
+```
+
+**B. The CI artifact** (default) — needs the `gh` CLI, authenticated; artifacts
+expire. `arm64` on Apple Silicon, `x86_64` on Intel:
+
+```bash
+ARCH=$(uname -m)                                  # arm64 or x86_64
+REPO="${GEODA_REPO:-GeoDaCenter/geoda}"
+DEST="${GEODA_DEST:-/tmp/geoda-build}"
+
+if [ ! -f /tmp/GeoDa.dmg ]; then
+  RUN="${GEODA_RUN_ID:-$(gh run list -R "$REPO" -w osx_build --status success \
+        -L 20 --json databaseId -q '.[0].databaseId')}"
+  ART=$(gh run view "$RUN" -R "$REPO" --json artifacts -q '.artifacts[].name' \
+        | grep -F "$ARCH" | head -1)
+  rm -rf "$DEST" && mkdir -p "$DEST"
+  gh run download "$RUN" -R "$REPO" -n "$ART" -D "$DEST"
+  cp "$(find "$DEST" -name '*.dmg' | head -1)" /tmp/GeoDa.dmg
+  echo "downloaded $ART from $REPO run $RUN"
+fi
+```
+
+If `gh` is missing or not authenticated, ask the user for the `.dmg` path (or set
+`GEODA_DMG_URL`) — do not guess a download link.
+
+## Step 2 — Install
+
+```bash
+hdiutil attach /tmp/GeoDa.dmg -nobrowse -mountpoint /tmp/geoda-dmg
+rm -rf "/Applications/GeoDa.app"
+cp -R /tmp/geoda-dmg/GeoDa.app /Applications/
+hdiutil detach /tmp/geoda-dmg
+```
+
+These CI builds are **unsigned**, so macOS refuses to launch them — clear the
+quarantine flag (and say in your summary that this bypassed Gatekeeper):
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/GeoDa.app"
+```
+
+## Step 3 — Launch, opening the data set
+
+GeoDa takes the data set path as a command-line argument, which avoids the native
+file dialog an agent cannot drive:
+
+```bash
+open -a GeoDa "/absolute/path/to/data.geojson"
+```
+
+If GeoDa is already running, `open` routes the file to the running app (the same
+path "Open With" uses) and it opens as a new project. If you have no data set
+yet, ask the user for one, or use any GeoJSON / Shapefile on disk.
+
+Starting the app also starts the MCP server. Wait for it and read the port it
+bound:
+
+```bash
+for i in $(seq 1 30); do [ -f ~/.geoda/mcp.json ] && break; sleep 1; done
+cat ~/.geoda/mcp.json 2>/dev/null || echo "discovery file not written yet"
+```
+
+## Step 4 — Confirm the MCP URL
+
+The default URL is `http://127.0.0.1:8765/mcp`. The app records the port it
+actually bound in `~/.geoda/mcp.json` — if 8765 was taken it falls back to a
+nearby port, so read the file (or probe):
+
+```bash
+URL=$(sed -n 's/.*"url":"\([^"]*\)".*/\1/p' ~/.geoda/mcp.json 2>/dev/null)
+if [ -z "$URL" ]; then
+  for p in $(seq 8765 8774); do
+    code=$(curl -s -m 1 -o /dev/null -w '%{http_code}' -X POST \
+      -H 'content-type: application/json' -H 'accept: application/json, text/event-stream' \
+      -d '{"jsonrpc":"2.0","id":1,"method":"ping"}' "http://127.0.0.1:$p/mcp")
+    [ "$code" = "200" ] && { URL="http://127.0.0.1:$p/mcp"; break; }
+  done
+fi
+echo "$URL"
+```
+
+Verify the server answers before registering (a `ping` returns `{}`):
+
+```bash
+curl -s -X POST -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"ping"}' \
+  "http://127.0.0.1:8765/mcp"
+```
+
+## Step 5 — Register with this client
+
+```bash
+claude mcp add --transport http geoda http://127.0.0.1:8765/mcp
+```
+
+```bash
+codex mcp add geoda --url http://127.0.0.1:8765/mcp
+```
+
+Use the real URL from Step 4. Then **tell the user to restart the client** (Codex
+requires a full restart; Claude Code needs a restart or an in-session `/mcp`
+reconnect) so the new server is loaded. After that restart, re-run the original
+request — there are no more manual steps.
+
+## Step 6 — Drive it
+
+Once GeoDa's tools are available:
+
+1. `project/status` — confirm a data set is open (title, path, dimensions). If
+   nothing is open, re-launch with the path (Step 3), or call `file/open` and ask
+   the user to pick the file in the dialog.
+2. `table/list_columns` — see the fields; `table/univariate_stats` for a column.
+3. `weights/create` (`{"type":"queen"}`) — build a spatial weights matrix and
+   keep its id; the spatial-statistics tools take that id.
+4. Global autocorrelation: `global/moran`, `global/geary`, `global/general_g`.
+   Local: `lisa/local_moran`, `lisa/local_geary`, `lisa/local_g`.
+5. Clustering: `cluster/skater`, `cluster/redcap`, `cluster/maxp`, `cluster/azp`,
+   `cluster/spatial_kmeans`, `cluster/dbscan`, `cluster/hdbscan`, …; classical
+   `cluster/kmeans`, `cluster/pca`, `cluster/tsne`, `cluster/hierarchical`.
+6. Maps and plots render in the app window: `map/quantile`,
+   `map/natural_breaks`, `map/rates_eb`, `explore/histogram`,
+   `explore/scatterplot`, `window/create_map`, `window/create_lisa_map`, …
+7. Export results with `table/export` or `file/export` (GeoJSON, GeoPackage,
+   Shapefile, CSV, KML).
+
+The GeoDa tools are **GUI-bound**: they act on the project open in the app window,
+and maps and plots appear there. Read `tools/list` for the full set and each
+tool's parameters.
+
+## Notes
+
+- **Port:** the server binds 8765 by default, falling back to 8765–8774 and then
+  an OS-assigned port; `~/.geoda/mcp.json` always records the real one. On
+  Windows the file is `%USERPROFILE%\.geoda\mcp.json`.
+- **Turning it off:** launch with `--no-mcp`, or set `GEODA_MCP_ENABLED=0`.
+  Override the port with `--mcp-port N` or `GEODA_MCP_PORT=N`.
+- **Auth:** the MCP listener is loopback-only (127.0.0.1) with no token — anyone
+  with local access to the machine can drive the app while it is running.
+- **Installing this skill:** an agent-skills client loads a skill from a
+  `<skills-dir>/<name>/SKILL.md` directory, so fetch this file into that shape:
+
+```bash
+mkdir -p ~/.claude/skills/geoda-mcp
+curl -fsSL https://raw.githubusercontent.com/GeoDaCenter/geoda-skill/main/.agents/skills/geoda-mcp/SKILL.md \
+  -o ~/.claude/skills/geoda-mcp/SKILL.md
+# Codex / other agent-skills clients read the same file:
+mkdir -p ~/.agents/skills/geoda-mcp
+cp ~/.claude/skills/geoda-mcp/SKILL.md ~/.agents/skills/geoda-mcp/SKILL.md
+```
+
+If you already have this repo checked out, copying `.agents/skills/geoda-mcp/`
+to either of those directories works the same way.

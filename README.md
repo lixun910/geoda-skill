@@ -12,7 +12,7 @@ loader.
 ## Claude Code
 
 ```bash
-claude plugin marketplace add GeoDaCenter/geoda-skill
+claude plugin marketplace add lixun910/geoda-skill
 claude plugin install geoda-mcp@geoda-skill
 ```
 
@@ -24,7 +24,7 @@ Codex installs skills with its built-in `$skill-installer` — point it at this
 repo's skill directory, in a Codex session:
 
 ```
-$skill-installer install https://github.com/GeoDaCenter/geoda-skill/tree/main/.agents/skills/geoda-mcp
+$skill-installer install https://github.com/lixun910/geoda-skill/tree/main/.agents/skills/geoda-mcp
 ```
 
 Restart Codex afterwards. (The installer aborts if the skill is already
@@ -33,17 +33,17 @@ installed; remove the existing skill directory first to reinstall.)
 If `$skill-installer` isn't available, copy the skill files by hand:
 
 ```bash
-curl -fsSL --create-dirs -o ~/.agents/skills/geoda-mcp/SKILL.md https://raw.githubusercontent.com/GeoDaCenter/geoda-skill/main/.agents/skills/geoda-mcp/SKILL.md
+curl -fsSL --create-dirs -o ~/.agents/skills/geoda-mcp/SKILL.md https://raw.githubusercontent.com/lixun910/geoda-skill/main/.agents/skills/geoda-mcp/SKILL.md
 ```
 
 ```bash
-curl -fsSL --create-dirs -o ~/.agents/skills/geoda-mcp/agents/openai.yaml https://raw.githubusercontent.com/GeoDaCenter/geoda-skill/main/.agents/skills/geoda-mcp/agents/openai.yaml
+curl -fsSL --create-dirs -o ~/.agents/skills/geoda-mcp/agents/openai.yaml https://raw.githubusercontent.com/lixun910/geoda-skill/main/.agents/skills/geoda-mcp/agents/openai.yaml
 ```
 
 ## One command for both clients
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/GeoDaCenter/geoda-skill/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/lixun910/geoda-skill/main/install.sh | bash
 ```
 
 ## Then

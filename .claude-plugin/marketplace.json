@@ -1,8 +1,8 @@
 {
   "name": "geoda-skill",
   "owner": {
-    "name": "GeoDa Center",
-    "url": "https://github.com/GeoDaCenter"
+    "name": "Xun Li",
+    "url": "https://github.com/lixun910"
   },
   "description": "Bootstrap skill and MCP connection for GeoDa.",
   "plugins": [

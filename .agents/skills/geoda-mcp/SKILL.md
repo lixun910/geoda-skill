@@ -202,7 +202,7 @@ tool's parameters.
 
 ```bash
 mkdir -p ~/.claude/skills/geoda-mcp
-curl -fsSL https://raw.githubusercontent.com/GeoDaCenter/geoda-skill/main/.agents/skills/geoda-mcp/SKILL.md \
+curl -fsSL https://raw.githubusercontent.com/lixun910/geoda-skill/main/.agents/skills/geoda-mcp/SKILL.md \
   -o ~/.claude/skills/geoda-mcp/SKILL.md
 # Codex / other agent-skills clients read the same file:
 mkdir -p ~/.agents/skills/geoda-mcp

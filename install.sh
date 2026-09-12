@@ -2,7 +2,7 @@
 # Install the GeoDa MCP bootstrap skill for Claude Code and Codex.
 set -euo pipefail
 
-RAW="https://raw.githubusercontent.com/GeoDaCenter/geoda-skill/main"
+RAW="https://raw.githubusercontent.com/lixun910/geoda-skill/main"
 SKILL_DIR="skills/geoda-mcp"
 MCP_URL="${GEODA_MCP_URL:-http://127.0.0.1:8765/mcp}"
 

@@ -57,7 +57,7 @@ REPO="${GEODA_REPO:-GeoDaCenter/geoda}"
 DEST="${GEODA_DEST:-/tmp/geoda-build}"
 
 if [ ! -f /tmp/GeoDa.dmg ]; then
-  RUN="${GEODA_RUN_ID:-$(gh run list -R "$REPO" -w osx_build --status success \
+  RUN="${GEODA_RUN_ID:-$(gh run list -R "$REPO" -w osx_build.yml --status success \
         -L 20 --json databaseId -q '.[0].databaseId')}"
   ART=$(gh run view "$RUN" -R "$REPO" --json artifacts -q '.artifacts[].name' \
         | grep -F "$ARCH" | head -1)
@@ -70,6 +70,10 @@ fi
 
 If `gh` is missing or not authenticated, ask the user for the `.dmg` path (or set
 `GEODA_DMG_URL`) — do not guess a download link.
+
+The default `REPO` is `GeoDaCenter/geoda`. Its newest successful build may
+predate the MCP auto-start change; until that lands, point `GEODA_REPO` at a
+branch or fork that has it, or pin `GEODA_RUN_ID`.
 
 ## Step 2 — Install
 
@@ -106,6 +110,14 @@ bound:
 ```bash
 for i in $(seq 1 30); do [ -f ~/.geoda/mcp.json ] && break; sleep 1; done
 cat ~/.geoda/mcp.json 2>/dev/null || echo "discovery file not written yet"
+```
+
+If the discovery file never appears, the build predates the auto-start change —
+relaunch passing the port explicitly (works on every MCP-enabled build):
+
+```bash
+osascript -e 'quit app "GeoDa"' 2>/dev/null; sleep 2
+open -a GeoDa --args --mcp-port 8765 "/absolute/path/to/data.geojson"
 ```
 
 ## Step 4 — Confirm the MCP URL

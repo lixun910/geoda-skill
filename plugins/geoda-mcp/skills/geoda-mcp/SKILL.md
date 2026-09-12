@@ -71,9 +71,12 @@ fi
 If `gh` is missing or not authenticated, ask the user for the `.dmg` path (or set
 `GEODA_DMG_URL`) — do not guess a download link.
 
-The default `REPO` is `GeoDaCenter/geoda`. Its newest successful build may
-predate the MCP auto-start change; until that lands, point `GEODA_REPO` at a
-branch or fork that has it, or pin `GEODA_RUN_ID`.
+The default `REPO` is `GeoDaCenter/geoda`. Builds it runs on its own branches and
+tags are **signed and notarized**; builds produced by a fork's pull request are
+unsigned, because secrets are withheld from fork PRs. The auto-start change lives
+on `feat-mcp-server` (PR #2586), so until that merges into `master` the newest
+successful run in that repo is the one to take. To be explicit, pin `GEODA_RUN_ID`
+to a run (and `GEODA_REPO` if you are building from a fork).
 
 ## Step 2 — Install
 
@@ -84,12 +87,19 @@ cp -R /tmp/geoda-dmg/GeoDa.app /Applications/
 hdiutil detach /tmp/geoda-dmg
 ```
 
-These CI builds are **unsigned**, so macOS refuses to launch them — clear the
-quarantine flag (and say in your summary that this bypassed Gatekeeper):
+Builds from `GeoDaCenter/geoda`'s own branches are signed and notarized (`spctl -a
+-vv -t exec` says `accepted` / `Notarized Developer ID`) and launch normally;
+fork-PR builds are unsigned. A file fetched with `gh` or `curl` carries no
+quarantine flag, so this is usually a no-op — only if the launch in Step 3 is
+blocked, clear it and say in your summary that this bypassed Gatekeeper:
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/GeoDa.app"
 ```
+
+(After the app has run once, `codesign --verify` reports a broken seal: GeoDa
+writes `logger.txt` into its own `Contents/Resources` at startup. That is normal
+and does not stop it launching.)
 
 ## Step 3 — Launch, opening the data set
 
@@ -139,13 +149,15 @@ fi
 echo "$URL"
 ```
 
-Verify the server answers before registering (a `ping` returns `{}`):
+Verify the server answers before registering — a plain `GET /` replies
+`GeoDa MCP server running` and a `ping` returns `{}`:
 
 ```bash
+curl -s http://127.0.0.1:8765/          # GeoDa MCP server running
 curl -s -X POST -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":1,"method":"ping"}' \
-  "http://127.0.0.1:8765/mcp"
+  "http://127.0.0.1:8765/mcp"           # {"jsonrpc":"2.0","id":1,"result":{}}
 ```
 
 ## Step 5 — Register with this client
@@ -191,7 +203,8 @@ tool's parameters.
 ## Notes
 
 - **Port:** the server binds 8765 by default, falling back to 8765–8774 and then
-  an OS-assigned port; `~/.geoda/mcp.json` always records the real one. On
+  an OS-assigned port; `~/.geoda/mcp.json` always records the real one, and it is
+  removed when the app quits — so a missing file means the app is not running. On
   Windows the file is `%USERPROFILE%\.geoda\mcp.json`.
 - **Turning it off:** launch with `--no-mcp`, or set `GEODA_MCP_ENABLED=0`.
   Override the port with `--mcp-port N` or `GEODA_MCP_PORT=N`.

@@ -65,8 +65,9 @@ install.sh                                               installs the skill for 
 ## Notes
 
 - **Builds:** GeoDa's MCP server is on the `feat-mcp-server` line and is not in a
-  public release yet, so the skill pulls the macOS build from CI. The CI builds
-  are unsigned — the skill clears the quarantine flag after installing.
+  public release yet, so the skill pulls the macOS build from CI. Builds run on
+  `GeoDaCenter/geoda`'s own branches are signed and notarized; fork-PR builds are
+  unsigned, so the skill clears the quarantine flag only if a launch is blocked.
 - **Updating:** bump `version` in both
   `plugins/geoda-mcp/.claude-plugin/plugin.json` and
   `plugins/geoda-mcp/plugin.json`, then users run

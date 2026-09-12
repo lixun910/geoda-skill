@@ -59,7 +59,7 @@ DEST="${GEODA_DEST:-/tmp/geoda-build}"
 if [ ! -f /tmp/GeoDa.dmg ]; then
   RUN="${GEODA_RUN_ID:-$(gh run list -R "$REPO" -w osx_build.yml --status success \
         -L 20 --json databaseId -q '.[0].databaseId')}"
-  ART=$(gh run view "$RUN" -R "$REPO" --json artifacts -q '.artifacts[].name' \
+  ART=$(gh api "repos/$REPO/actions/runs/$RUN/artifacts" -q '.artifacts[].name' \
         | grep -F "$ARCH" | head -1)
   rm -rf "$DEST" && mkdir -p "$DEST"
   gh run download "$RUN" -R "$REPO" -n "$ART" -D "$DEST"

@@ -40,6 +40,14 @@ curl -fsSL --create-dirs -o ~/.agents/skills/geoda-mcp/SKILL.md https://raw.gith
 curl -fsSL --create-dirs -o ~/.agents/skills/geoda-mcp/agents/openai.yaml https://raw.githubusercontent.com/lixun910/geoda-skill/main/.agents/skills/geoda-mcp/agents/openai.yaml
 ```
 
+```bash
+curl -fsSL --create-dirs -o ~/.agents/skills/geoda-mcp/skill-references/lisa-kepler-map.md https://raw.githubusercontent.com/lixun910/geoda-skill/main/.agents/skills/geoda-mcp/skill-references/lisa-kepler-map.md
+```
+
+```bash
+curl -fsSL --create-dirs -o ~/.agents/skills/geoda-mcp/examples/make_lisa_kepler_map.py https://raw.githubusercontent.com/lixun910/geoda-skill/main/.agents/skills/geoda-mcp/examples/make_lisa_kepler_map.py
+```
+
 ## One command for both clients
 
 ```bash
@@ -58,6 +66,8 @@ app, and drives its tools.
 .claude-plugin/marketplace.json                          Claude Code marketplace
 plugins/geoda-mcp/.claude-plugin/plugin.json             Claude Code plugin manifest
 plugins/geoda-mcp/skills/geoda-mcp/SKILL.md              the skill
+plugins/geoda-mcp/skills/geoda-mcp/skill-references/     deep-dive references (e.g. LISA → kepler.gl map)
+plugins/geoda-mcp/skills/geoda-mcp/examples/             runnable examples
 .agents/skills/geoda-mcp/SKILL.md                        the skill (Codex copy)
 install.sh                                               installs the skill for both clients
 ```

@@ -1,6 +1,6 @@
 ---
 name: geoda-mcp
-description: Set up and connect to GeoDa's built-in MCP server so this agent can run spatial analysis in GeoDa (spatial weights, global and local spatial autocorrelation / LISA, spatial clustering, regression, maps) over MCP. Use when the user asks to run spatial autocorrelation, LISA, Moran's I, or spatial clustering "in GeoDa" / "with GeoDa", or when the geoda MCP tools are not yet available in this session.
+description: Set up and connect to GeoDa's built-in MCP server so this agent can run spatial analysis in GeoDa (spatial weights, global and local spatial autocorrelation / LISA, spatial clustering, regression, maps) over MCP, and turn a LISA result into a standalone kepler.gl map. Use when the user asks to run spatial autocorrelation, LISA, Moran's I, or spatial clustering "in GeoDa" / "with GeoDa", when they want a LISA cluster map as a portable kepler.gl HTML file, or when the geoda MCP tools are not yet available in this session.
 ---
 
 # GeoDa MCP bootstrap
@@ -199,6 +199,18 @@ Once GeoDa's tools are available:
 The GeoDa tools are **GUI-bound**: they act on the project open in the app window,
 and maps and plots appear there. Read `tools/list` for the full set and each
 tool's parameters.
+
+## Step 7 — Visualize a LISA result as a standalone kepler.gl map
+
+GeoDa draws LISA cluster maps in its own window. When the user wants a **portable,
+interactive map** — or one colored with GeoDa's exact LISA palette — build a
+standalone kepler.gl HTML file from the same LISA result. This needs no kepler.gl
+plugin: the reference is self-contained.
+
+- Full procedure, GeoDa's palette, the kepler layer config, and the traps that make
+  an export render uniformly or not mount at all:
+  [lisa-kepler-map.md](skill-references/lisa-kepler-map.md)
+- Runnable generator: [make_lisa_kepler_map.py](examples/make_lisa_kepler_map.py)
 
 ## Notes
 

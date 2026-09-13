@@ -6,11 +6,20 @@ RAW="https://raw.githubusercontent.com/lixun910/geoda-skill/main"
 SKILL_DIR="skills/geoda-mcp"
 MCP_URL="${GEODA_MCP_URL:-http://127.0.0.1:8765/mcp}"
 
+# Files that make up the skill (skill-references/ and examples/ ship alongside).
+SKILL_FILES=(
+  "SKILL.md"
+  "skill-references/lisa-kepler-map.md"
+  "examples/make_lisa_kepler_map.py"
+)
+
 # Claude Code reads ~/.claude/skills; Codex reads $HOME/.agents/skills.
 for base in "$HOME/.claude/skills" "$HOME/.agents/skills"; do
   dir="$base/geoda-mcp"
-  mkdir -p "$dir"
-  curl -fsSL "$RAW/.agents/$SKILL_DIR/SKILL.md" -o "$dir/SKILL.md"
+  for rel in "${SKILL_FILES[@]}"; do
+    mkdir -p "$dir/$(dirname "$rel")"
+    curl -fsSL "$RAW/.agents/$SKILL_DIR/$rel" -o "$dir/$rel"
+  done
   echo "installed skill -> $dir/SKILL.md"
 done
 

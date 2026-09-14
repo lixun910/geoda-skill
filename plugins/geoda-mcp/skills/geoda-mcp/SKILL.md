@@ -179,6 +179,19 @@ request — there are no more manual steps.
 
 Once GeoDa's tools are available:
 
+**Confirm the parameters first — one decision at a time.** Every tool below takes
+parameters that change the result, so ask the user before calling it. Ask **only**
+for what the request left unspecified — a fully specified prompt ("LISA on HR90,
+queen weights") needs no question. Ask **sequentially**, one card per decision,
+using the client's structured question tool (`AskUserQuestion` in Claude Code;
+plain text, then wait, in clients that have none). The canonical LISA order is
+**variable → spatial weights → run**; other analyses follow the same shape
+(clustering asks for `k`, a choropleth for `num_categories`, a scatter plot for
+its x/y variables). Derive the options from the open project — variables from
+`table/list_columns`, weights from the `weights/create` id. The full per-tool
+list of what to confirm, with defaults, is in
+[confirm-parameters.md](skill-references/confirm-parameters.md).
+
 1. `project/status` — confirm a data set is open (title, path, dimensions). If
    nothing is open, re-launch with the path (Step 3), or call `file/open` and ask
    the user to pick the file in the dialog.
@@ -206,6 +219,10 @@ GeoDa draws LISA cluster maps in its own window. When the user wants a **portabl
 interactive map** — or one colored with GeoDa's exact LISA palette — build a
 standalone kepler.gl HTML file from the same LISA result. This needs no kepler.gl
 plugin: the reference is self-contained.
+
+**Ask first.** When a LISA result comes back, if the user did not already ask for
+a portable map, **ask whether they want one** (a simple yes/no) before building
+it — do not generate the HTML unprompted.
 
 - Full procedure, GeoDa's palette, the kepler layer config, and the traps that make
   an export render uniformly or not mount at all:

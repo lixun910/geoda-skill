@@ -41,6 +41,10 @@ curl -fsSL --create-dirs -o ~/.agents/skills/geoda-mcp/agents/openai.yaml https:
 ```
 
 ```bash
+curl -fsSL --create-dirs -o ~/.agents/skills/geoda-mcp/skill-references/confirm-parameters.md https://raw.githubusercontent.com/lixun910/geoda-skill/main/.agents/skills/geoda-mcp/skill-references/confirm-parameters.md
+```
+
+```bash
 curl -fsSL --create-dirs -o ~/.agents/skills/geoda-mcp/skill-references/lisa-kepler-map.md https://raw.githubusercontent.com/lixun910/geoda-skill/main/.agents/skills/geoda-mcp/skill-references/lisa-kepler-map.md
 ```
 

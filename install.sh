@@ -9,6 +9,7 @@ MCP_URL="${GEODA_MCP_URL:-http://127.0.0.1:8765/mcp}"
 # Files that make up the skill (skill-references/ and examples/ ship alongside).
 SKILL_FILES=(
   "SKILL.md"
+  "skill-references/confirm-parameters.md"
   "skill-references/lisa-kepler-map.md"
   "examples/make_lisa_kepler_map.py"
 )

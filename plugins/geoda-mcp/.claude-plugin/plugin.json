@@ -1,7 +1,7 @@
 {
   "name": "geoda-mcp",
   "description": "Install, launch, and connect GeoDa so this agent can run spatial analysis with it (spatial weights, LISA, clustering, regression, maps) over MCP.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": {
     "name": "GeoDa Center"
   }

@@ -55,12 +55,12 @@ to pre-select and state when asking.
 
 | Parameter | Ask for | Options / default |
 |-----------|---------|-------------------|
-| `type` | weights type | queen (the usual default), rook, knn, distance, kernel |
-| `order` | contiguity order | 1 (suggested), 2 … — only when a higher order matters |
-| `k` | neighbors per observation | e.g. 6 — knn only; no declared default |
+| `type` | weights type | queen (used when omitted), rook, knn, distance, kernel |
+| `order` | contiguity order | 1 (used when omitted), 2 … — only when a higher order matters |
+| `k` | neighbors per observation | 6 (used when omitted) — knn only |
 | `distance_threshold` | distance band | e.g. the min distance keeping all units connected — distance only |
-| `kernel` | kernel function | triangular, uniform, epanechnikov, quartic, gaussian — kernel only |
-| `is_arc` / `is_mile` | distance units | great-circle vs planar; miles vs map units — distance/kernel only |
+| `kernel` | kernel function | triangular (used when omitted), uniform, epanechnikov, quartic, gaussian — kernel only |
+| `is_arc` / `is_mile` | distance units | both false (used when omitted) — great-circle vs planar, miles vs map units |
 
 ### Global spatial autocorrelation — `global/moran`, `global/geary`, `global/general_g`
 
@@ -92,11 +92,11 @@ to pre-select and state when asking.
 | Tool | Ask for | Default |
 |------|---------|---------|
 | `skater` | `columns` (variables), `weights`, `k` regions, `boundary` (optional) | k = 3; no method choice |
-| `redcap` | `columns`, `weights`, `k`, `method` (firstorder, fullorder_ward, fullorder_alk, fullorder_clk, singlelink, avglink, completelink) | k = 3; `method` has no declared default — suggest firstorder |
-| `schc` | `columns`, `weights`, `k`, `method` (singlelink / avglink / completelink) | k = 3; `method` has no declared default |
-| `azp` | `columns`, `weights`, `k`, `method` (greedy / tabu / sa) | k = 3; `method` has no declared default — suggest greedy |
+| `redcap` | `columns`, `weights`, `k`, `method` (firstorder, fullorder_ward, fullorder_alk, fullorder_clk, singlelink, avglink, completelink) | k = 3; `method` uses firstorder when omitted |
+| `schc` | `columns`, `weights`, `k`, `method` (singlelink / avglink / completelink) | k = 3; `method` uses singlelink when omitted |
+| `azp` | `columns`, `weights`, `k`, `method` (greedy / tabu / sa) | k = 3; `method` uses greedy when omitted |
 | `maxp` | `columns`, `weights`, `bound_variable`, `min_bound` | — (bound variable + min bound required) |
-| `spatial_kmeans` | `columns`, `weights`, `k`, `init` (kmeans++ / random) | k = 3; `init` has no declared default |
+| `spatial_kmeans` | `columns`, `weights`, `k`, `init` (kmeans++ / random) | k = 3; `init` uses random when omitted (GeoDa's desktop dialog offers KMeans++, worth mentioning) |
 | `spectral` | `columns`, `weights`, `k` | k = 3 |
 
 ### Density clustering — `cluster/dbscan`, `cluster/hdbscan`
@@ -112,7 +112,7 @@ to pre-select and state when asking.
 | Tool | Ask for | Default |
 |------|---------|---------|
 | `kmeans` / `kmedians` / `pam` | `columns`, `k` | k = 3 |
-| `hierarchical` | `columns`, `k`, `method` (single / complete / average / ward) | k = 3; `method` has no declared default |
+| `hierarchical` | `columns`, `k`, `method` (single / complete / average / ward) | k = 3; `method` uses average when omitted |
 | `pca` / `mds` | `columns` | — |
 | `tsne` | nothing (no parameters) | — |
 
@@ -121,9 +121,9 @@ to pre-select and state when asking.
 | Parameter | Ask for | Default |
 |-----------|---------|---------|
 | `column` | variable | — (required) |
-| `theme` | classification | quantile / natural_breaks / equal_intervals / percentile / stddev / unique_values / no_theme |
+| `theme` | classification | quantile (used when omitted) / natural_breaks / equal_intervals / percentile / stddev / unique_values / no_theme |
 | `num_categories` | number of classes | 5 |
-| `smoothing` | rate smoothing | no_smoothing, raw_rate, excess_risk, empirical_bayes, spatial_rate, spatial_empirical_bayes |
+| `smoothing` | rate smoothing | no_smoothing (used when omitted), raw_rate, excess_risk, empirical_bayes, spatial_rate, spatial_empirical_bayes |
 | `weights` | weights id | required when `smoothing` needs neighbors |
 
 ### LISA map — `window/create_lisa_map`

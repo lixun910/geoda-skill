@@ -51,10 +51,13 @@ For a single numeric variable over polygons, the plausible set is:
 | Spatial autocorrelation | `global/moran`, then `lisa/local_moran` |
 | Grouping similar areas | `cluster/*` |
 
-Offer only what the request implies — "compare HR60 and HR90" skips the
-univariate rows and starts at `explore/scatterplot`. Once an analysis is chosen
-the flow is the ordinary one (variable → weights where the tool takes them →
-tool-specific parameter), so nothing below changes.
+That table is a menu to draw from, not the card itself. A structured question
+tool caps how many options it will show — `AskUserQuestion` takes four — so pick
+the best few for the request instead of offering every row. Offer only what the
+request implies, too: "compare HR60 and HR90" skips the univariate rows and
+starts at `explore/scatterplot`. Once an analysis is chosen the flow is the
+ordinary one (variable → weights where the tool takes them → tool-specific
+parameter), so nothing below changes.
 
 ## Recommended order (the LISA example)
 

@@ -104,15 +104,45 @@ and does not stop it launching.)
 ## Step 3 — Launch, opening the data set
 
 GeoDa takes the data set path as a command-line argument, which avoids the native
-file dialog an agent cannot drive:
+file dialog an agent cannot drive. It reads that argument **only at launch**, so
+quit any running copy first and run the executable directly:
 
 ```bash
-open -a GeoDa "/absolute/path/to/data.geojson"
+osascript -e 'quit app "GeoDa"' 2>/dev/null; sleep 2
+if pgrep -x GeoDa >/dev/null; then
+  echo "GeoDa is still running - dismiss any dialog it is showing, then retry"
+else
+  /Applications/GeoDa.app/Contents/MacOS/GeoDa \
+    --mcp-port 8765 "/absolute/path/to/data.geojson" >/dev/null 2>&1 &
+fi
 ```
 
-If GeoDa is already running, `open` routes the file to the running app (the same
-path "Open With" uses) and it opens as a new project. If you have no data set
-yet, ask the user for one, or use any GeoJSON / Shapefile on disk.
+Redirect the app's output: GeoDa logs to stdout, so backgrounding it without that
+leaves the pipe open and a non-interactive shell never returns.
+
+Do not use `open -a GeoDa <path>` for this. Against an already-running instance it
+exits 0 and opens nothing — the project already loaded stays put, so every tool
+call after it answers from the wrong data set. Launching through `open` also hands
+the app a bare command line (the path travels in an Apple event instead), which is
+why the check below cannot see it; and with a second copy of the bundle on disk,
+`open -a GeoDa` can start that copy, leaving the MCP client talking to the wrong
+build.
+
+Confirm the launch took by looking for the path in the process's own command line:
+
+```bash
+ps -o command= -p "$(pgrep -x GeoDa | head -1)" \
+  | grep -F "/absolute/path/to/data.geojson"
+```
+
+`project/status` cannot tell you this — it reports the title and dimensions but
+leaves `path` empty. If the check fails, the old instance never exited (a modal
+dialog blocks the quit): ask the user to dismiss it, then launch again rather than
+continuing against the stale project.
+
+If you have no data set yet, ask the user for one, or use any GeoJSON / Shapefile
+on disk. A shapefile needs its `.dbf` beside it — one missing its `.dbf` opens
+with no columns at all, so the variable you are about to ask for won't be there.
 
 Starting the app also starts the MCP server. Wait for it and read the port it
 bound:
@@ -122,13 +152,9 @@ for i in $(seq 1 30); do [ -f ~/.geoda/mcp.json ] && break; sleep 1; done
 cat ~/.geoda/mcp.json 2>/dev/null || echo "discovery file not written yet"
 ```
 
-If the discovery file never appears, the build predates the auto-start change —
-relaunch passing the port explicitly (works on every MCP-enabled build):
-
-```bash
-osascript -e 'quit app "GeoDa"' 2>/dev/null; sleep 2
-open -a GeoDa --args --mcp-port 8765 "/absolute/path/to/data.geojson"
-```
+`--mcp-port` above pins the server to the default port, so this works on a build
+that predates the auto-start change too; such a build writes no discovery file,
+and Step 4's probe finds the server anyway.
 
 ## Step 4 — Confirm the MCP URL
 

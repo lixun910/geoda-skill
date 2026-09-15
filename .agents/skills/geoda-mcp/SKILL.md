@@ -192,6 +192,14 @@ its x/y variables). Derive the options from the open project — variables from
 list of what to confirm, with defaults, is in
 [confirm-parameters.md](skill-references/confirm-parameters.md).
 
+**If the request names no analysis, ask for that first.** A vague prompt ("run
+exploratory data analysis on HR60", "look at crime in the south") fixes the data
+and maybe the variable but not the tool, and the per-tool list cannot be
+consulted until one is chosen. So make the *analysis* the first card — offer the
+few that fit the request (for a single variable, typically histogram, boxplot,
+choropleth, and Moran's I / LISA) — then confirm that tool's parameters as above.
+`confirm-parameters.md` has the same rule with the candidate set spelled out.
+
 1. `project/status` — confirm a data set is open (title, path, dimensions). If
    nothing is open, re-launch with the path (Step 3), or call `file/open` and ask
    the user to pick the file in the dialog.

@@ -32,6 +32,30 @@ Derive the options from the open project, not from memory:
 - Weights → the id returned by the earlier `weights/create` (`weights/list`).
 - Anything already set in the app → `project/status`.
 
+## If the request names no analysis
+
+A vague prompt — "run exploratory data analysis on HR60", "look at crime in the
+south" — leaves the *analysis* unspecified, not just its parameters. Every table
+below assumes a tool has already been picked, so pick it first: ask **one** card
+offering the analyses that fit the request and the data, then confirm that tool's
+parameters from its own table.
+
+For a single numeric variable over polygons, the plausible set is:
+
+| Analysis | Tool |
+|----------|------|
+| Distribution | `explore/histogram` — ask the bin count here too (see below) |
+| Spread and outliers | `explore/boxplot` |
+| Pairwise relationships | `explore/scatterplot_matrix`, `explore/pcp` |
+| The variable on the map | `window/create_map` (choropleth) |
+| Spatial autocorrelation | `global/moran`, then `lisa/local_moran` |
+| Grouping similar areas | `cluster/*` |
+
+Offer only what the request implies — "compare HR60 and HR90" skips the
+univariate rows and starts at `explore/scatterplot`. Once an analysis is chosen
+the flow is the ordinary one (variable → weights where the tool takes them →
+tool-specific parameter), so nothing below changes.
+
 ## Recommended order (the LISA example)
 
 > "Run a LISA analysis using `~/Downloads/natregimes/natregimes.shp` in GeoDa."
@@ -135,17 +159,21 @@ significance). Confirm the variable, weights, and map type.
 
 | Tool | Ask for |
 |------|---------|
-| `histogram` / `boxplot` | one variable |
+| `histogram` | one variable, then `bins` (optional — see below) |
+| `boxplot` | one variable |
 | `scatterplot` | two variables (x, y) |
 | `bubble_chart` | three variables (x, y, size) |
 | `3d_scatter` | three variables (x, y, z) |
 | `pcp` | the set of variables to compare |
 | `scatterplot_matrix` / `line_chart` | nothing (no parameters) |
 
-> **Histograms and bin count.** GeoDa's histogram chooses its own bins — the MCP
-> tool has no bin-count parameter, so there is nothing to ask beyond the
-> variable. Do not invent a `bins` argument; it does not exist. (Class counts
-> that *are* configurable live on the map tools, as `num_categories`.)
+> **Histogram bins.** `bins` sets the class count. Omit it and GeoDa chooses its
+> own — offer "let GeoDa choose" as the default alongside a few counts (5, 10,
+> 12, …), and ask only once the variable is settled. Two cases it ignores: a
+> count below 2, and any value for a *string* variable, where the count is fixed
+> at the number of distinct values. `window/create_plot` takes the same `bins`
+> for `plot_type: histogram`. The class count on the *map* tools is a different
+> parameter, `num_categories`.
 
 ### Regression — `regress/classic`
 

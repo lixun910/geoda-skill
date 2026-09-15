@@ -58,7 +58,11 @@ tool-specific parameter), so nothing below changes.
 
 ## Recommended order (the LISA example)
 
-> "Run a LISA analysis using `~/Downloads/natregimes/natregimes.shp` in GeoDa."
+> "Run a LISA analysis using `~/Downloads/natregimes/natregimes.geojson` in GeoDa."
+
+Point at a file that carries its attributes — a shapefile needs its `.dbf` and
+`.prj` beside it, and one missing them opens with no columns at all, so the
+variable you are about to ask for won't be there.
 
 1. Open/confirm the project (`project/status`, launching with the path if needed).
 2. `table/list_columns` → **ask: which variable?** (e.g. HR90, HR80, RD90…)

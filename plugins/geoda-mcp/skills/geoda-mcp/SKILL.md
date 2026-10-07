@@ -1,6 +1,6 @@
 ---
 name: geoda-mcp
-description: Set up and connect to GeoDa's built-in MCP server so this agent can run spatial analysis in GeoDa (spatial weights, global and local spatial autocorrelation / LISA, spatial clustering, regression, maps) over MCP, open a local data set (shapefile, GeoJSON, GeoPackage) in the running app, and turn a LISA result into a standalone kepler.gl map. Use when the user asks to run spatial autocorrelation, LISA, Moran's I, or spatial clustering "in GeoDa" / "with GeoDa", when they ask GeoDa to load a local data file, when they want a LISA cluster map as a portable kepler.gl HTML file, or when the geoda MCP tools are not yet available in this session.
+description: Set up and connect to GeoDa's built-in MCP server so this agent can run spatial analysis in GeoDa (spatial weights, global and local spatial autocorrelation / LISA, spatial clustering, regression, maps) over MCP, and turn a LISA result into a standalone kepler.gl map. Use when the user asks to run spatial autocorrelation, LISA, Moran's I, or spatial clustering "in GeoDa" / "with GeoDa", when they want a LISA cluster map as a portable kepler.gl HTML file, or when the geoda MCP tools are not yet available in this session.
 ---
 
 # GeoDa MCP bootstrap
@@ -12,15 +12,12 @@ It hosts a **built-in MCP server** that starts with the app, binding
 `~/.geoda/mcp.json`. Once connected, this agent drives GeoDa's analysis tools
 directly and the maps and plots render in the app window.
 
-This skill downloads, installs, launches, and registers that app, and opens the
-data set in it. It is **idempotent** — run the first step and skip ahead if the
-tools are already available.
+This skill downloads, installs, launches, and registers that app. It is
+**idempotent** — run the first step and skip ahead if the tools are already
+available.
 
-> The MCP server merged into `master` for 1.22.2 (PR #2586), but `file/open` —
-> the tool that opens a data set in the running app — is newer than that release
-> (PR #2595), so until it merges the build to take is the fork's: run Step 1
-> with `GEODA_REPO=lixun910/geoda`. Either build works — Step 6 says how to tell
-> which one you have, and what to do on one without `file/open`.
+> The MCP server ships on the `feat-mcp-server` line (PR #2586) and is not in a
+> public release yet, so Step 1 pulls the build from CI.
 
 ## Step 0 — Are we already connected?
 
@@ -104,45 +101,11 @@ xattr -dr com.apple.quarantine "/Applications/GeoDa.app"
 writes `logger.txt` into its own `Contents/Resources` at startup. That is normal
 and does not stop it launching.)
 
-## Step 3 — Launch GeoDa
+## Step 3 — Launch, opening the data set
 
-The app hosts the MCP server, and the server starts with the app. Launch the
-executable directly, with **no data set** — the client opens that in Step 6, so
-one instance can switch data sets without a restart. If GeoDa is already running
-(the usual case, when the user started it themselves) leave it be:
-
-```bash
-if ! pgrep -x GeoDa >/dev/null; then
-  /Applications/GeoDa.app/Contents/MacOS/GeoDa --mcp-port 8765 >/dev/null 2>&1 &
-fi
-```
-
-Redirect the app's output: GeoDa logs to stdout, so backgrounding it without that
-leaves the pipe open and a non-interactive shell never returns.
-
-Wait for the server and read the port it bound:
-
-```bash
-for i in $(seq 1 30); do [ -f ~/.geoda/mcp.json ] && break; sleep 1; done
-cat ~/.geoda/mcp.json 2>/dev/null || echo "discovery file not written yet"
-```
-
-`--mcp-port` above pins the server to the default port, so this works on a build
-that predates the auto-start change too; such a build writes no discovery file,
-and Step 4's probe finds the server anyway.
-
-If no server answers at all (no discovery file, and Step 4's probe finds
-nothing), the running copy was started with `--no-mcp` or `GEODA_MCP_ENABLED=0`.
-Ask the user to start it from GeoDa's **Options → MCP → Start MCP Server…** menu
-— that menu entry also shows the URL to register — or quit the app and launch it
-again as above.
-
-### If this build has no `file/open`
-
-Releases up to 1.22.2 register `file/open` against a "requires the GeoDa GUI"
-stub, so a data set can only reach them on the command line. GeoDa reads that
-argument **only at launch**, so quit any running copy first and run the
-executable directly:
+GeoDa takes the data set path as a command-line argument, which avoids the native
+file dialog an agent cannot drive. It reads that argument **only at launch**, so
+quit any running copy first and run the executable directly:
 
 ```bash
 osascript -e 'quit app "GeoDa"' 2>/dev/null; sleep 2
@@ -153,6 +116,9 @@ else
     --mcp-port 8765 "/absolute/path/to/data.geojson" >/dev/null 2>&1 &
 fi
 ```
+
+Redirect the app's output: GeoDa logs to stdout, so backgrounding it without that
+leaves the pipe open and a non-interactive shell never returns.
 
 Do not use `open -a GeoDa <path>` for this. Against an already-running instance it
 exits 0 and opens nothing — the project already loaded stays put, so every tool
@@ -169,10 +135,26 @@ ps -o command= -p "$(pgrep -x GeoDa | head -1)" \
   | grep -F "/absolute/path/to/data.geojson"
 ```
 
-`project/status` reports the title and dimensions but leaves `path` empty, so this
-is the only way to confirm which file is loaded. If the check fails, the old
-instance never exited (a modal dialog blocks the quit): ask the user to dismiss
-it, then launch again rather than continuing against the stale project.
+`project/status` cannot tell you this — it reports the title and dimensions but
+leaves `path` empty. If the check fails, the old instance never exited (a modal
+dialog blocks the quit): ask the user to dismiss it, then launch again rather than
+continuing against the stale project.
+
+If you have no data set yet, ask the user for one, or use any GeoJSON / Shapefile
+on disk. A shapefile needs its `.dbf` beside it — one missing its `.dbf` opens
+with no columns at all, so the variable you are about to ask for won't be there.
+
+Starting the app also starts the MCP server. Wait for it and read the port it
+bound:
+
+```bash
+for i in $(seq 1 30); do [ -f ~/.geoda/mcp.json ] && break; sleep 1; done
+cat ~/.geoda/mcp.json 2>/dev/null || echo "discovery file not written yet"
+```
+
+`--mcp-port` above pins the server to the default port, so this works on a build
+that predates the auto-start change too; such a build writes no discovery file,
+and Step 4's probe finds the server anyway.
 
 ## Step 4 — Confirm the MCP URL
 
@@ -244,27 +226,9 @@ few that fit the request (for a single variable, typically histogram, boxplot,
 choropleth, and Moran's I / LISA) — then confirm that tool's parameters as above.
 `confirm-parameters.md` has the same rule with the candidate set spelled out.
 
-1. **Open the data set.** `project/status` first: if nothing is open, ask the
-   user which file to use (or take the one their request named) and open it with
-   `file/open`, which takes an absolute path — `~` and `${VAR}` are expanded:
-
-   ```json
-   {"name": "file/open", "arguments": {"path": "~/Downloads/natregimes.shp"}}
-   ```
-
-   The result reports the `path`, `title`, `num_records` and `num_columns` it
-   opened, the analysis tools then act on that project, and the map window
-   appears in the app. GeoDa holds **one project at a time**: opening while one is
-   open is refused, so call `file/close` first to switch data sets — add
-   `{"force": true}` only if the user agrees to discard unsaved edits.
-
-   On a build whose `file/open` has no `path` parameter (the 1.22.x releases and
-   older CI builds, where the tool is only a stub), load the data set at launch
-   instead, as in "If this build has no `file/open`" under Step 3; `tools/list`
-   says which build you have.
-
-   A shapefile needs its `.dbf` beside it — one missing its `.dbf` opens with no
-   columns at all, so the variable you are about to ask for won't be there.
+1. `project/status` — confirm a data set is open (title, path, dimensions). If
+   nothing is open, re-launch with the path (Step 3), or call `file/open` and ask
+   the user to pick the file in the dialog.
 2. `table/list_columns` — see the fields; `table/univariate_stats` for a column.
 3. `weights/create` (`{"type":"queen"}`) — build a spatial weights matrix and
    keep its id; the spatial-statistics tools take that id.
